@@ -1316,22 +1316,24 @@ window.addEventListener('load', () => {
     if (btn) btn.click();
   }
 });
-// Otomatik CSV yükle
-// Upload overlay'i gizle ve CSV otomatik yükle
+// Otomatik CSV yükle — harita hazır olduktan sonra
 window.addEventListener('load', () => {
-  setTimeout(() => {
-    // Overlay'i kapat
-    const overlay = document.getElementById('upload-overlay');
-    if (overlay) overlay.style.display = 'none';
-    
-    // CSV yükle
+  const overlay = document.getElementById('upload-overlay');
+  if (overlay) overlay.style.display = 'none';
+
+  function tryLoad() {
+    if (!S.mapReady) {
+      setTimeout(tryLoad, 200);
+      return;
+    }
     fetch('coordinates.csv')
       .then(r => r.text())
       .then(text => {
         const results = Papa.parse(text, { header: true, skipEmptyLines: true });
         processCSV(results.data);
       });
-  }, 1500);
+  }
+  tryLoad();
 });
 
 
