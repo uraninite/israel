@@ -42,6 +42,19 @@
     <div style="color:#fff;font-size:20px;font-weight:700;margin-bottom:12px;">MAPBOX TOKEN</div>
     <div style="color:#bbb;font-size:13px;margin-bottom:24px;line-height:1.6;">Harita kullanmak için Mapbox token'ı girin.<br><a href="https://mapbox.com/account/tokens" target="_blank" style="color:#ff9800;text-decoration:none;font-weight:600;">mapbox.com/account/tokens</a> adresinden bedava token alabilirsiniz.</div>
     <input id="token-input" type="text" placeholder="pk.EEEEEEEEEEEEEEEEE.xxxxx" style="width:100%;padding:12px;border:1px solid #ff9800;background:#0f3460;color:#fff;border-radius:4px;font-family:monospace;font-size:12px;margin-bottom:16px;box-sizing:border-box;" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          var inp = document.getElementById('token-input');
+          if (inp) {
+            inp.value = 'pk.eyJ1IjoiZnJhbmtkaW1pdHJpIiwiYSI6ImNsZ25udHpzazA5c3Ezc3BqYWRvY3pwdTIifQ.hYxDNOe-gRNb-rDjImyusQ';
+            // Confirm butonunu bul ve tıkla
+            setTimeout(function() {
+              var btns = document.querySelectorAll('button');
+              btns.forEach(function(b) { b.click(); });
+            }, 100);
+          }
+        });
+      </script>
     <button id="token-btn" style="width:100%;padding:12px;background:#ff9800;color:#000;border:none;border-radius:4px;font-weight:700;cursor:pointer;font-size:13px;transition:all 0.2s;">BAŞLAT</button>
   </div>
 </div>
