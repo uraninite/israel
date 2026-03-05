@@ -8,14 +8,10 @@ let MAPBOX_TOKEN = '';
 
 // Check for token from HTML handler and initialize
 function initAppWithToken() {
-  const token = localStorage.getItem('_tempToken');
-  if (token) {
-    MAPBOX_TOKEN = token;
-    mapboxgl.accessToken = 'pk.eyJ1IjoiZnJhbmtkaW1pdHJpIiwiYSI6ImNsZ25udHpzazA5c3Ezc3BqYWRvY3pwdTIifQ.hYxDNOe-gRNb-rDjImyusQ';
-    localStorage.removeItem('_tempToken');
-    updateRangeUI();
-    initMap();
-  }
+  MAPBOX_TOKEN = 'pk.eyJ1IjoiZnJhbmtkaW1pdHJpIiwiYSI6ImNsZ25udHpzazA5c3Ezc3BqYWRvY3pwdTIifQ.hYxDNOe-gRNb-rDjImyusQ';
+  mapboxgl.accessToken = 'pk.eyJ1IjoiZnJhbmtkaW1pdHJpIiwiYSI6ImNsZ25udHpzazA5c3Ezc3BqYWRvY3pwdTIifQ.hYxDNOe-gRNb-rDjImyusQ';
+  updateRangeUI();
+  initMap();
 }
 
 // On DOMContentLoaded, check if token was set
@@ -1306,4 +1302,5 @@ fetch('coordinates.csv')
   .then(text => {
     const results = Papa.parse(text, { header: true, skipEmptyLines: true });
     processCSV(results.data);
+
   });
