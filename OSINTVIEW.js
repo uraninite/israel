@@ -1316,4 +1316,16 @@ window.addEventListener('load', () => {
     if (btn) btn.click();
   }
 });
+// Otomatik CSV yükle
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    fetch('coordinates.csv')
+      .then(r => r.text())
+      .then(text => {
+        const results = Papa.parse(text, { header: true, skipEmptyLines: true });
+        processCSV(results.data);
+      });
+  }, 1500); // harita yüklenene kadar bekle
+});
+
 
