@@ -1304,3 +1304,16 @@ fetch('coordinates.csv')
     processCSV(results.data);
 
   });
+// Token otomatik set et ve onayla
+window.addEventListener('load', () => {
+  localStorage.setItem('_tempToken', 'pk.eyJ1IjoiZnJhbmtkaW1pdHJpIiwiYSI6ImNsZ25udHpzazA5c3Ezc3BqYWRvY3pwdTIifQ.hYxDNOe-gRNb-rDjImyusQ');
+  // Token input varsa otomatik doldur ve onayla
+  const input = document.querySelector('input[type="text"], #token-input, #mapbox-token');
+  if (input) {
+    input.value = 'pk.eyJ1IjoiZnJhbmtkaW1pdHJpIiwiYSI6ImNsZ25udHpzazA5c3Ezc3BqYWRvY3pwdTIifQ.hYxDNOe-gRNb-rDjImyusQ';
+    input.dispatchEvent(new Event('input'));
+    const btn = document.querySelector('button');
+    if (btn) btn.click();
+  }
+});
+
