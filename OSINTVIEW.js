@@ -1317,15 +1317,21 @@ window.addEventListener('load', () => {
   }
 });
 // Otomatik CSV yükle
+// Upload overlay'i gizle ve CSV otomatik yükle
 window.addEventListener('load', () => {
   setTimeout(() => {
+    // Overlay'i kapat
+    const overlay = document.getElementById('upload-overlay');
+    if (overlay) overlay.style.display = 'none';
+    
+    // CSV yükle
     fetch('coordinates.csv')
       .then(r => r.text())
       .then(text => {
         const results = Papa.parse(text, { header: true, skipEmptyLines: true });
         processCSV(results.data);
       });
-  }, 1500); // harita yüklenene kadar bekle
+  }, 1500);
 });
 
 
