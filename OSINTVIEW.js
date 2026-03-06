@@ -22,13 +22,13 @@ if (document.readyState === 'loading') {
 }
 
 const MAP_STYLES = {
-  light:     'mapbox://styles/mapbox/light-v11',
+  light: 'mapbox://styles/mapbox/light-v11',
   satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
-  dark:      'mapbox://styles/mapbox/dark-v11',
+  dark: 'mapbox://styles/mapbox/dark-v11',
 };
 
 // Category definitions — order matters for detection (more specific first)
-const strategicCategories = [
+let strategicCategories = [
   // 1. STRATEJİK CAYDIRICILIK VE SİLAH SİSTEMLERİ (En Yüksek Öncelik - Kırmızı/Mor)
   { key: 'nukleer',     kws: ['nükleer', 'nuclear', 'reaktör', 'atom', 'dimona', 'soreq', 'irr-1'], color: '#4A148C', label: 'Nükleer Tesis' },
   { key: 'havasavunma', kws: ['hava savunma', 'iron dome', 'demir kubbe', 'arrow', 'david', 'patriot', 'lazer', 'magen or'], color: '#B71C1C', label: 'Hava Savunma' },
