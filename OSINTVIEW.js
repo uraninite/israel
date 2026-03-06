@@ -28,18 +28,29 @@ const MAP_STYLES = {
 };
 
 // Category definitions — order matters for detection (more specific first)
-const CATS = [
-  { key: 'nukleer',   kws: ['nükleer','nuclear','reaktör','atom','nükleer'],     color: '#6A1B9A', label: 'Nükleer' },
-  { key: 'hava',      kws: ['hava','airport','airbase','havalimanı','hava üs'],  color: '#1565C0', label: 'Hava Üssü' },
-  { key: 'liman',     kws: ['liman','port','deniz','naval','tersane','deniz üs'],color: '#00695C', label: 'Liman/Deniz' },
-  { key: 'radar',     kws: ['radar','anten','sinyal','iletişim','telekom'],       color: '#FF6F00', label: 'Radar/İletişim' },
-  { key: 'askeri',    kws: ['askeri','military','kışla','komuta','ordu','garnizon','jandarma'], color: '#B71C1C', label: 'Askeri' },
-  { key: 'enerji',    kws: ['enerji','santral','elektrik','güç','power','baraj'],color: '#F9A825', label: 'Enerji' },
-  { key: 'arastirma', kws: ['araştırma','research','üniversite','laboratuvar','lab','tübitak'], color: '#558B2F', label: 'Araştırma' },
-  { key: 'depo',      kws: ['depo','lojistik','ambar','depolama','ikmal'],        color: '#4E342E', label: 'Depo/Lojistik' },
-  { key: 'tunel',     kws: ['tünel','yeraltı','bunker','sığınak','yeralt'],       color: '#212121', label: 'Tünel/Bunker' },
-  { key: 'sanayi',    kws: ['sanayi','fabrika','factory','endüstri','imalat'],    color: '#37474F', label: 'Sanayi' },
-  { key: 'unknown',   kws: [],                                                    color: '#9E9E9E', label: 'Bilinmiyor' },
+const strategicCategories = [
+  // 1. STRATEJİK CAYDIRICILIK VE SİLAH SİSTEMLERİ (En Yüksek Öncelik - Kırmızı/Mor)
+  { key: 'nukleer',     kws: ['nükleer', 'nuclear', 'reaktör', 'atom', 'dimona', 'soreq', 'irr-1'], color: '#4A148C', label: 'Nükleer Tesis' },
+  { key: 'havasavunma', kws: ['hava savunma', 'iron dome', 'demir kubbe', 'arrow', 'david', 'patriot', 'lazer', 'magen or'], color: '#B71C1C', label: 'Hava Savunma' },
+  { key: 'fuze',        kws: ['füze', 'missile', 'silo', 'jericho', 'rampa', 'balistik', 'iha', 'drone'], color: '#C62828', label: 'Füze/İHA Rampası' },
+
+  // 2. KOMUTA, İSTİHBARAT VE SİBER (Kritik Altyapı - Koyu Mavi/Siyah)
+  { key: 'istihbarat',  kws: ['istihbarat', 'mossad', 'şin bet', 'shin bet', 'unit', 'aman', 'siber', 'cyber', 'gözetim', 'c4i'], color: '#1A237E', label: 'İstihbarat/Siber' },
+  { key: 'komuta',      kws: ['komuta', 'karargah', 'hq', 'knesset', 'kirya', 'hükümet', 'vip', 'cog', 'bakanlık'], color: '#0D47A1', label: 'Komuta/Hükümet' },
+  { key: 'radar',       kws: ['radar', 'anten', 'sinyal', 'erken uyarı', 'sensör', 'telekom'], color: '#FF6F00', label: 'Radar/Erken Uyarı' },
+
+  // 3. GELENEKSEL ASKERİ UNSURLAR VE LOJİSTİK (Yeşil ve Kahverengi Tonları)
+  { key: 'hava',        kws: ['hava', 'airport', 'airbase', 'havalimanı', 'hava üssü', 'hatzerim', 'nevatim', 'tel nof', 'ramat david'], color: '#0277BD', label: 'Hava Üssü' },
+  { key: 'liman',       kws: ['liman', 'port', 'deniz', 'naval', 'tersane', 'haifa', 'aşdod', 'ashdod', 'eilat'], color: '#006064', label: 'Deniz Üssü/Liman' },
+  { key: 'askeri',      kws: ['askeri', 'military', 'kışla', 'ordu', 'garnizon', 'piyade', 'zırhlı', 'idf', 'tugay'], color: '#33691E', label: 'Kara Birliği/Garnizon' },
+  { key: 'tunel',       kws: ['tünel', 'yeraltı', 'bunker', 'sığınak', 'underground'], color: '#212121', label: 'Yeraltı Sığınağı' },
+  { key: 'depo',        kws: ['depo', 'lojistik', 'ambar', 'ikmal', 'mühimmat', 'cephane', 'yakıt'], color: '#5D4037', label: 'Stratejik Depo' },
+
+  // 4. DESTEK VE SİVİL-ASKERİ ORTAK ALTYAPI (Gri, Turuncu vb.)
+  { key: 'enerji',      kws: ['enerji', 'santral', 'elektrik', 'power', 'baraj', 'rafineri', 'gaz'], color: '#F57F17', label: 'Enerji Altyapısı' },
+  { key: 'arastirma',   kws: ['araştırma', 'research', 'laboratuvar', 'lab', 'rafael', 'iai', 'elbit', 'savunma sanayi', 'endüstri'], color: '#37474F', label: 'Savunma Sanayi/AR-GE' },
+  { key: 'sahte',       kws: ['sahte', 'decoy', 'yanıltıcı', 'kukla', 'dummy'], color: '#9E9E9E', label: 'Sahte/Yanıltıcı Hedef' },
+  { key: 'unknown',     kws: [], color: '#757575', label: 'Sınıflandırılamayan' }
 ];
 
 const STATUS_COLORS = {
@@ -1335,5 +1346,6 @@ window.addEventListener('load', () => {
   }
   tryLoad();
 });
+
 
 
