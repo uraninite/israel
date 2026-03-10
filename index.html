@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <!-- 
+  ╔══════════════════════════════════════════════════════════════════════════╗
+  ║                 OSINT ATLAS  Haritalama Platformu                        ║
+  ║  ────────────────────────────────────────────────────────────────────────  ║
+  ║  GPU-OPTIMIZED RENDERING ARCHITECTURE (0 DOM Elements)                   ║
+  ║                                                                          ║
+  ║  🎨 Frontend Stack:                                                     ║
+  ║    • Mapbox GL JS v3.0.0 (Vector graphics, GPU accelerated)            ║
+  ║    • GeoJSON + Clustering (built-in point aggregation)                 ║
+  ║    • Canvas-rendered icons (pre-cached, uploaded to GPU)               ║
+  ║    • Virtual scroll list (efficient DOM rendering, 78px items)         ║
+  ║                                                                          ║
+  ║  ⚡ Performance Features:                                               ║
+  ║    • Symbol/Circle layers render 10,000+ points @ 60fps                ║
+  ║    • Zero HTML markers (each one would destroy performance)            ║
+  ║    • Paint expressions (critical/status-aware rendering)               ║
+  ║    • Filter expressions (instant search without redraw)                ║
+  ║                                                                          ║
+  ║  📊 Data Pipeline:                                                      ║
+  ║    CSV Upload → Papa Parse → Validation → GeoJSON → Mapbox Load      ║
+  ║                                                                          ║
+  ║  🔧 Architecture & implementation: OSINTVIEW.js line 1-350             ║
+  ╚══════════════════════════════════════════════════════════════════════════╝
+  -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OSINT ATLAS — İstihbarat Haritalama Platformu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet" />
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.css" rel="stylesheet" />
+  <link href="OSINTVIEW.css" rel="stylesheet" />
+</head>
+<body>
+
+<!-- TOKEN MODAL -->
+<div id="token-modal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:10000;">
+  <div style="background:#1a1a2e;border:2px solid #ff9800;padding:40px;border-radius:6px;width:90%;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+    <div style="color:#fff;font-size:20px;font-weight:700;margin-bottom:12px;">MAPBOX TOKEN</div>
+    <div style="color:#bbb;font-size:13px;margin-bottom:24px;line-height:1.6;">Harita kullanmak için Mapbox token'ı girin.<br><a href="https://mapbox.com/account/tokens" target="_blank" style="color:#ff9800;text-decoration:none;font-weight:600;">mapbox.com/account/tokens</a> adresinden bedava token alabilirsiniz.</div>
+    <input id="token-input" type="text" placeholder="pk.EEEEEEEEEEEEEEEEE.xxxxx" style="width:100%;padding:12px;border:1px solid #ff9800;background:#0f3460;color:#fff;border-radius:4px;font-family:monospace;font-size:12px;margin-bottom:16px;box-sizing:border-box;" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          var inp = document.getElementById('token-input');
+          if (inp) {
+            inp.value = 'pk.eyJ1IjoiZnJhbmtkaW1pdHJpIiwiYSI6ImNsZ25udHpzazA5c3Ezc3BqYWRvY3pwdTIifQ.hYxDNOe-gRNb-rDjImyusQ';
+            // Confirm butonunu bul ve tıkla
+            setTimeout(function() {
+              var btns = document.querySelectorAll('button');
+              btns.forEach(function(b) { b.click(); });
+            }, 100);
+          }
+        });
+      </script>
+    <button id="token-btn" style="width:100%;padding:12px;background:#ff9800;color:#000;border:none;border-radius:4px;font-weight:700;cursor:pointer;font-size:13px;transition:all 0.2s;">BAŞLAT</button>
+  </div>
+</div>
+
+<div id="loading-bar"></div>
+
+<script>window.setToken=function(){const t=document.getElementById('token-input').value.trim();if(!t){alert('Token yapistirin');return}if(!t.startsWith('pk.')){alert('Gecersiz token');return}localStorage.setItem('_tempToken',t);document.getElementById('token-modal').style.display='none'};document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('token-btn'),i=document.getElementById('token-input');if(b)b.onclick=window.setToken;if(i)i.addEventListener('keypress',e=>{if(e.key==='Enter')window.setToken()})});</script>
+
+<!-- HEADER -->
+<header id="header">
+  <div class="h-logo">
+    <div class="h-logo-mark">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <polygon points="8,1 15,14 1,14" stroke="white" stroke-width="1.5" fill="none"/>
+        <circle cx="8" cy="8" r="2" fill="white"/>
+      </svg>
+    </div>
+    <div>
+      <div class="h-logo-text">OSINT ATLAS</div>
+      <div class="h-logo-sub">İSTİHBARAT HARİTALAMA</div>
+    </div>
+  </div>
+
+  <div class="h-stats">
+    <div class="h-stat">
+      <div>
+        <div class="h-stat-val" id="stat-total">—</div>
+        <div class="h-stat-lbl">TESİS</div>
+      </div>
+    </div>
+    <div class="h-stat">
+      <div>
+        <div class="h-stat-val" id="stat-cats">—</div>
+        <div class="h-stat-lbl">KATEGORİ</div>
+      </div>
+    </div>
+    <div class="h-stat">
+      <div>
+        <div class="h-stat-val h-stat-accent" id="stat-high">—</div>
+        <div class="h-stat-lbl">YÜKSEK KRİTİKLİK</div>
+      </div>
+    </div>
+    <div class="h-stat">
+      <div>
+        <div class="h-stat-val" id="stat-visible">—</div>
+        <div class="h-stat-lbl">GÖRÜNÜR</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="h-actions">
+    <button class="btn-outline" id="btn-fit" title="Haritayı Sıfırla">⊙ FIT</button>
+    <button class="btn-primary" id="btn-open-upload">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path d="M6 1v7M3 4l3-3 3 3M2 10h8" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      CSV YÜKLE
+    </button>
+    <input type="file" id="file-input" accept=".csv" style="display:none" />
+  </div>
+</header>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- LEFT PANEL -->
+  <div id="panel">
+
+    <!-- Search -->
+    <div class="psec">
+      <div class="search-wrap" id="search-wrap">
+        <input class="search-input" id="search-input" type="text" placeholder="ID, tesis adı veya etiket ara..." />
+        <span class="search-suffix">⌕</span>
+        <button class="search-clear" id="search-clear">×</button>
+      </div>
+    </div>
+
+    <!-- Status Filter -->
+    <div class="psec">
+      <div class="psec-label">
+        DURUM
+        <button id="status-all-btn">Tümü</button>
+      </div>
+      <div class="chip-row" id="status-chips"></div>
+    </div>
+
+    <!-- Criticality Range -->
+    <div class="psec">
+      <div class="psec-label">KRİTİKLİK SKORU</div>
+      <div class="range-row">
+        <span class="range-val" id="crit-min-val">0</span>
+        <div class="range-track">
+          <div class="range-bg"></div>
+          <div class="range-fill" id="range-fill"></div>
+          <input type="range" id="crit-min" min="0" max="100" value="0" />
+          <input type="range" id="crit-max" min="0" max="100" value="100" />
+        </div>
+        <span class="range-val" id="crit-max-val">100</span>
+      </div>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="psec">
+      <div class="psec-label">
+        KATEGORİ
+        <button id="cat-all-btn">Tümü</button>
+      </div>
+      <div class="cat-list" id="cat-list"></div>
+    </div>
+
+    <!-- Facility List -->
+    <div id="list-wrap">
+      <div id="list-header">
+        <span id="list-count" class="font-mono">— tesis</span>
+        <div id="list-sort">KRİTİKLİK ↓</div>
+      </div>
+      <div id="list-scroll">
+        <div id="list-inner"></div>
+        <div id="list-empty">
+          <div id="list-empty-icon">◎</div>
+          <div id="list-empty-text">Sonuç bulunamadı.<br/>Filtrelerinizi kontrol edin.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAP AREA -->
+  <div id="map-area">
+    <div id="map"></div>
+
+    <!-- Map Style Buttons -->
+    <div class="style-btns">
+      <button class="style-btn on" data-style="light">AÇIK</button>
+      <button class="style-btn" data-style="satellite">UYDU</button>
+      <button class="style-btn" data-style="dark">KOYU</button>
+    </div>
+
+    <!-- Map Controls -->
+    <div class="map-btns">
+      <button class="map-btn" id="mbtn-plus" title="Yakınlaştır">+</button>
+      <button class="map-btn" id="mbtn-minus" title="Uzaklaştır">−</button>
+      <button class="map-btn" id="mbtn-rotate" title="Döndür">↻</button>
+      <button class="map-btn" id="mbtn-north" title="Kuzeye Yönel">N</button>
+    </div>
+
+    <!-- Legend -->
+    <div id="legend">
+      <div class="legend-title">KATEGORİLER</div>
+      <div id="legend-items"></div>
+    </div>
+
+    <!-- Map info (coordinates on hover) -->
+    <div id="map-info" id="map-info"></div>
+
+    <!-- UPLOAD OVERLAY -->
+    <div id="upload-overlay" style="display:none"></div>
+
+    <!-- DETAIL PANEL -->
+    <div id="detail">
+      <div class="detail-hdr">
+        <div class="detail-cat-stripe" id="detail-stripe"></div>
+        <div class="detail-hdr-main">
+          <div class="detail-hdr-left">
+            <div class="detail-id-badge" id="d-id"></div>
+            <div class="detail-name" id="d-name"></div>
+          </div>
+          <button class="detail-close" id="detail-close">×</button>
+        </div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-main">
+          <div class="df">
+            <div class="df-lbl">Stratejik Açıklama</div>
+            <div class="detail-desc" id="d-desc"></div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Koordinatlar</div>
+            <div class="df-val mono" id="d-coords"></div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Kritiklik Skoru</div>
+            <div class="crit-row">
+              <div class="crit-bar-track">
+                <div class="crit-bar-fill" id="d-crit-bar"></div>
+              </div>
+              <div class="crit-num" id="d-crit-val"></div>
+            </div>
+          </div>
+        </div>
+        <div class="detail-sidebar">
+          <div class="df">
+            <div class="df-lbl">Kategori</div>
+            <div class="df-val" id="d-cat"></div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Durum</div>
+            <div class="df-val" id="d-status"></div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Kaynak</div>
+            <div class="df-val mono" id="d-source"></div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Alan (km²)</div>
+            <div class="df-val mono" id="d-area"></div>
+          </div>
+          <div class="df">
+            <div class="df-lbl">Etiket</div>
+            <div class="tag-wrap" id="d-tags"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CDN SCRIPTS -->
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<!-- Application Scripts -->
+<script src="OSINTVIEW.js"></script>
+
+</body>
+</html>
